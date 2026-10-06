@@ -53,7 +53,8 @@ header button{color:#fff;background:transparent;border-color:#fff}
 #fx{position:fixed;inset:0;pointer-events:none;z-index:80;display:none}
 #fxdom{position:fixed;inset:0;pointer-events:none;z-index:78;display:none;overflow:hidden}
 .fxcard{position:absolute;width:60px;border-radius:7px;box-shadow:0 2px 7px rgba(16,26,48,.3)}
-.fxpeng{position:absolute;width:74px;animation:dance .5s ease-in-out infinite}
+.fxpeng{position:absolute;width:74px;animation:ppop .5s cubic-bezier(.34,1.56,.64,1) backwards,dance .5s ease-in-out infinite .5s}
+@keyframes ppop{0%{transform:translateY(160px) scale(.5);opacity:0}70%{opacity:1}100%{transform:translateY(0) scale(1);opacity:1}}
 @keyframes dance{0%,100%{transform:translateY(0) rotate(-9deg)}50%{transform:translateY(-28px) rotate(9deg)}}
 .shake{animation:shk .4s}
 @keyframes shk{0%,100%{transform:translateX(0)}20%{transform:translateX(-7px)}40%{transform:translateX(7px)}60%{transform:translateX(-5px)}80%{transform:translateX(5px)}}
@@ -188,9 +189,11 @@ function cascade(keep){fxdom.style.display='block';if(!keep)fxdom.innerHTML='';
    p.el.style.left=p.x+'px';p.el.style.top=p.y+'px';p.el.style.transform='rotate('+(p.x*.4)+'deg)';}
   if(fr<380)requestAnimationFrame(loop);else if(!keep)setTimeout(()=>{fxdom.style.display='none';fxdom.innerHTML='';},900);};
  requestAnimationFrame(loop);}
-function danceP(keep){fxdom.style.display='block';if(!keep)fxdom.innerHTML='';const n=9;
+function danceP(keep){fxdom.style.display='block';if(!keep)fxdom.innerHTML='';
+ const n=Math.min(14,Math.max(10,Math.floor(innerWidth/92)));
  for(let i=0;i<n;i++){const el=document.createElement('img');el.src=BACK;el.className='fxpeng';
-  el.style.left=(innerWidth*(i+.5)/n-37)+'px';el.style.bottom='46px';el.style.animationDelay=(i*.09)+'s';fxdom.appendChild(el);}
+  el.style.left=(innerWidth*(i+.5)/n-37)+'px';el.style.bottom='46px';
+  const d=(Math.random()*.5+i*.05).toFixed(2);el.style.animationDelay=d+'s,'+(+d+.5)+'s';fxdom.appendChild(el);}
  if(!keep)setTimeout(()=>{fxdom.style.display='none';fxdom.innerHTML='';},3800);}
 function celebrate(){     // 다이나믹: 색종이 연속 폭발 + 카드폭포 + 펭귄댄스 동시
  sndWin();
