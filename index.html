@@ -339,10 +339,8 @@ function onDragEnd(e){
 function canToFound(c,fi){const p=found[fi];
  if(p.length===0)return c.r===1;const t=p[p.length-1];return t.s===c.s&&c.r===t.r+1;}
 function canToTab(c,ci){const col=tab[ci];
- if(col.length===0)return true;const t=col[col.length-1];   // 빈 칸은 아무 카드나(완화)
- if(!t.up)return false;
- if(easyMode)return c.r===t.r-1;                 // 쉬움: 색 무관·빈칸 아무거나
- return (RED.has(t.s)!==RED.has(c.s))&&c.r===t.r-1;}
+ if(col.length===0)return c.r===13;const t=col[col.length-1];   // 기본 규칙: 빈 칸은 King
+ return t.up&&(RED.has(t.s)!==RED.has(c.s))&&c.r===t.r-1;}        // 색 번갈아·하나 작게
 function removeFrom(sel){
  if(sel.from==='waste')return [waste.pop()];
  if(sel.from==='found')return [found[sel.col].pop()];
