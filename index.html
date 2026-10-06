@@ -94,7 +94,6 @@ header button{color:#fff;background:transparent;border-color:#fff}
  <h2>옵션</h2>
  <div class="row"><span>사운드</span><div class="seg" id="o-snd"><button data-v="1">켬</button><button data-v="0">끔</button></div></div>
  <div class="row"><span>뽑기</span><div class="seg" id="o-draw"><button data-v="1">1장</button><button data-v="3">3장</button></div></div>
- <div class="row"><span>완성 연출</span><div class="seg" id="o-fx"><button data-v="random">랜덤</button><button data-v="confetti">색종이</button><button data-v="cascade">카드폭포</button><button data-v="dance">펭귄댄스</button></div></div>
  <button class="close" onclick="document.getElementById('opt').style.display='none'">닫기</button>
 </div></div>
 <script>
@@ -108,17 +107,16 @@ const fxc=document.getElementById('fx');
 const COLORS=['#CBAE57','#AE5E56','#4A6596','#6FA99B','#7E93BE','#DDE4F2'];
 let fxParts=[],fxRun=false,fxEnd=0;
 function fxResize(){fxc.width=innerWidth;fxc.height=innerHeight;}
-function burst(){
+function burst(cx,cy){
  fxResize();fxc.style.display='block';
- const cx=innerWidth/2, cy=innerHeight*0.42;
- fxParts=[];
- for(let i=0;i<160;i++){const a=Math.random()*Math.PI*2, sp=3+Math.random()*7;
-  fxParts.push({x:cx,y:cy,vx:Math.cos(a)*sp,vy:Math.sin(a)*sp-4,
-   s:5+Math.random()*7,c:COLORS[i%COLORS.length],rot:Math.random()*6,vr:(Math.random()-.5)*.4,g:0.14+Math.random()*0.08});}
- for(let i=0;i<120;i++){fxParts.push({x:Math.random()*innerWidth,y:-20-Math.random()*200,
-  vx:(Math.random()-.5)*2,vy:2+Math.random()*3,s:5+Math.random()*7,
-  c:COLORS[i%COLORS.length],rot:Math.random()*6,vr:(Math.random()-.5)*.4,g:0.1});}
- fxEnd=performance.now()+4200;
+ if(cx==null)cx=innerWidth/2; if(cy==null)cy=innerHeight*0.40;
+ for(let i=0;i<220;i++){const a=Math.random()*Math.PI*2, sp=4+Math.random()*9;
+  fxParts.push({x:cx,y:cy,vx:Math.cos(a)*sp,vy:Math.sin(a)*sp-5,
+   s:5+Math.random()*8,c:COLORS[(Math.random()*COLORS.length)|0],rot:Math.random()*6,vr:(Math.random()-.5)*.5,g:0.14+Math.random()*0.08});}
+ for(let i=0;i<90;i++){fxParts.push({x:Math.random()*innerWidth,y:-20-Math.random()*220,
+  vx:(Math.random()-.5)*2,vy:2+Math.random()*3,s:5+Math.random()*8,
+  c:COLORS[(Math.random()*COLORS.length)|0],rot:Math.random()*6,vr:(Math.random()-.5)*.4,g:0.1});}
+ fxEnd=performance.now()+4800;
  if(!fxRun){fxRun=true;requestAnimationFrame(fxStep);}
 }
 function fxStep(t){
@@ -152,7 +150,7 @@ function addScore(n){score=Math.max(0,score+n);}
 
 // ---- 완성 연출(랜덤): 색종이·카드폭포·펭귄댄스 ----
 const fxdom=document.getElementById('fxdom');
-function cascade(){fxdom.style.display='block';fxdom.innerHTML='';
+function cascade(keep){fxdom.style.display='block';if(!keep)fxdom.innerHTML='';
  const codes=[];for(const s of ['S','H','D','C'])for(let r=1;r<=13;r++)codes.push(s+r);shuffle(codes);
  const live=[];let idx=0,fr=0,sp=0;
  const loop=()=>{fr++;sp++;
@@ -163,14 +161,23 @@ function cascade(){fxdom.style.display='block';fxdom.innerHTML='';
    if(p.y>innerHeight-96){p.y=innerHeight-96;p.vy*=-.52;p.vx*=.82;}
    if(p.x<0||p.x>innerWidth-60){p.vx*=-.7;p.x=Math.max(0,Math.min(innerWidth-60,p.x));}
    p.el.style.left=p.x+'px';p.el.style.top=p.y+'px';p.el.style.transform='rotate('+(p.x*.4)+'deg)';}
-  if(fr<380)requestAnimationFrame(loop);else setTimeout(()=>{fxdom.style.display='none';fxdom.innerHTML='';},900);};
+  if(fr<380)requestAnimationFrame(loop);else if(!keep)setTimeout(()=>{fxdom.style.display='none';fxdom.innerHTML='';},900);};
  requestAnimationFrame(loop);}
-function danceP(){fxdom.style.display='block';fxdom.innerHTML='';const n=7;
+function danceP(keep){fxdom.style.display='block';if(!keep)fxdom.innerHTML='';const n=9;
  for(let i=0;i<n;i++){const el=document.createElement('img');el.src=BACK;el.className='fxpeng';
-  el.style.left=(innerWidth*(i+.5)/n-37)+'px';el.style.bottom='46px';el.style.animationDelay=(i*.11)+'s';fxdom.appendChild(el);}
- setTimeout(()=>{fxdom.style.display='none';fxdom.innerHTML='';},3800);}
-function celebrate(){sndWin();let k=winFx;if(k==='random')k=['confetti','cascade','dance'][Math.floor(Math.random()*3)];
- if(k==='confetti')burst();else if(k==='cascade')cascade();else danceP();}
+  el.style.left=(innerWidth*(i+.5)/n-37)+'px';el.style.bottom='46px';el.style.animationDelay=(i*.09)+'s';fxdom.appendChild(el);}
+ if(!keep)setTimeout(()=>{fxdom.style.display='none';fxdom.innerHTML='';},3800);}
+function celebrate(){     // 다이나믹: 색종이 연속 폭발 + 카드폭포 + 펭귄댄스 동시
+ sndWin();
+ fxdom.style.display='block';fxdom.innerHTML='';
+ danceP(true);cascade(true);
+ burst(innerWidth*0.30,innerHeight*0.42);
+ setTimeout(()=>burst(innerWidth*0.70,innerHeight*0.36),350);
+ setTimeout(()=>burst(innerWidth*0.50,innerHeight*0.50),780);
+ setTimeout(()=>burst(innerWidth*0.22,innerHeight*0.30),1350);
+ setTimeout(()=>burst(innerWidth*0.80,innerHeight*0.30),1900);
+ setTimeout(()=>{fxdom.style.display='none';fxdom.innerHTML='';},5500);
+}
 
 // ---- 옵션(로컬 저장) ----
 function loadOpt(){try{const o=JSON.parse(localStorage.getItem('adelie_klon')||'{}');
@@ -179,7 +186,7 @@ function saveOpt(){try{localStorage.setItem('adelie_klon',JSON.stringify({snd:so
 function syncOptUI(){
  document.querySelectorAll('#o-snd button').forEach(b=>b.classList.toggle('on',(b.dataset.v==='1')===soundOn));
  document.querySelectorAll('#o-draw button').forEach(b=>b.classList.toggle('on',+b.dataset.v===drawN));
- document.querySelectorAll('#o-fx button').forEach(b=>b.classList.toggle('on',b.dataset.v===winFx));}
+ }
 function shakeEl(to,ti){const el=(to==='tab'?document.querySelectorAll('.col'):document.querySelectorAll('.foundation'))[ti];
  if(el){el.classList.remove('shake');void el.offsetWidth;el.classList.add('shake');setTimeout(()=>el.classList.remove('shake'),420);}}
 
@@ -192,10 +199,6 @@ function newGame(){
  shuffle(deck);
  tab=[[],[],[],[],[],[],[]];
  for(let i=0;i<7;i++){for(let j=i;j<7;j++){const c=deck.pop();c.up=(j===i);tab[j].push(c)}}
- let _easy=0;try{_easy=+(localStorage.getItem('adelie_easy')||0);}catch(e){}
- easyMode=_easy<10;                                   // 초반 10판은 전부 오픈(쉬움)
- if(easyMode)tab.forEach(col=>col.forEach(c=>c.up=true));
- try{localStorage.setItem('adelie_easy',_easy+1);}catch(e){}
  stock=deck;stock.forEach(c=>c.up=false);
  waste=[];found=[[],[],[],[]];hist=[];sel=null;won=false;score=0;moves=0;
  document.getElementById('win').style.display='none';
@@ -226,7 +229,7 @@ function dealAnim(){
 function setStatus(){
  const f=found.reduce((a,p)=>a+p.length,0);
  const tm=t0?fmtT(Date.now()-t0):'00:00';
- document.getElementById('status').textContent=`완성 ${f}/52 · 점수 ${score} · 이동 ${moves} · 시간 ${tm} · 뽑기 ${drawN}장${easyMode?' · 쉬움':''}`;
+ document.getElementById('status').textContent=`완성 ${f}/52 · 점수 ${score} · 이동 ${moves} · 시간 ${tm} · 뽑기 ${drawN}장`;
 }
 function render(){
  const _prev={};document.querySelectorAll('.card[data-cid]').forEach(e=>_prev[e.dataset.cid]=e.getBoundingClientRect());
@@ -374,12 +377,24 @@ function autoFoundTab(ci,idx){
  for(let fi=0;fi<4;fi++){if(canToFound(c,fi)){sel={from:'tab',col:ci,idx};drop('found',fi);return;}}
  clearSel();
 }
+// ---- 우클릭 자동완성(막판에 남은 카드를 파운데이션으로) ----
+function autoFinish(){
+ if(won)return;clearInterval(window._afi);let noProg=0;
+ window._afi=setInterval(()=>{
+  let did=false;
+  for(let ci=0;ci<7&&!did;ci++){const col=tab[ci];if(col.length){const c=col[col.length-1];if(c.up){for(let fi=0;fi<4;fi++)if(canToFound(c,fi)){sel={from:'tab',col:ci,idx:col.length-1};drop('found',fi);did=true;break;}}}}
+  if(!did&&waste.length){const c=waste[waste.length-1];for(let fi=0;fi<4;fi++)if(canToFound(c,fi)){sel={from:'waste'};drop('found',fi);did=true;break;}}
+  if(did){noProg=0;if(won)clearInterval(window._afi);return;}
+  if(stock.length||waste.length){onStock();noProg++;if(noProg>60)clearInterval(window._afi);return;}
+  clearInterval(window._afi);
+ },130);
+}
+addEventListener('contextmenu',e=>{e.preventDefault();autoFinish();});
 document.getElementById('new').onclick=newGame;
 document.getElementById('undo').onclick=()=>{if(hist.length){const s=JSON.parse(hist.pop());stock=s.stock;waste=s.waste;found=s.found;tab=s.tab;score=s.score||0;moves=s.moves||0;sel=null;render();}};
 document.getElementById('opt-btn').onclick=()=>{syncOptUI();document.getElementById('opt').style.display='flex';};
 document.querySelectorAll('#o-snd button').forEach(b=>b.onclick=()=>{soundOn=b.dataset.v==='1';if(soundOn)sndFlip();saveOpt();syncOptUI();});
 document.querySelectorAll('#o-draw button').forEach(b=>b.onclick=()=>{drawN=+b.dataset.v;saveOpt();syncOptUI();setStatus();});
-document.querySelectorAll('#o-fx button').forEach(b=>b.onclick=()=>{winFx=b.dataset.v;saveOpt();syncOptUI();});
 // 자체 점검: 새 게임 시 52장 유일성
 function sanity(){const all=[...stock,...waste,...found.flat(),...tab.flat()];
  const set=new Set(all.map(c=>c.s+c.r));console.assert(all.length===52&&set.size===52,'카드 52 유일성 실패');}
