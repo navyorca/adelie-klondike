@@ -391,7 +391,7 @@ function showTip(){
  el.classList.remove('warn');
  document.getElementById('finish-fab').style.display=canFinish()?'inline-block':'none';
  if(won){el.textContent='완성! 새 게임으로 다시 시작';return;}
- if(autoing){el.textContent='뒷면 카드 다 열림 → 남은 카드 자동 정리 중';return;}
+ if(autoing){el.textContent='올릴 수 있는 카드 위 칸으로 올리는 중';return;}
  el.textContent=findMove()?'카드 누르고 → 놓을 곳 누르기(끌어다 놓아도 됨)':
   mode==='fc'?(cells.some(x=>!x)?'옮길 곳 없음 → 카드 눌러 왼쪽 위 빈칸에 잠시 두기':'더 둘 곳 없음 → 되돌리기 또는 새 게임'):
   stock.length?'옮길 카드 없음 → 왼쪽 위 더미 눌러 새 카드':
@@ -595,7 +595,17 @@ function autoFinish(){
   stop();
  },70);
 }
-addEventListener('contextmenu',e=>{e.preventDefault();});   // 261025 우클릭·폰 길게 누르기 자동 정리 뺌(네오 "이게 문제였어")
+// 261025 우클릭 = 지금 올릴 수 있는 카드만 위 칸으로(더미는 안 넘김). 폰 길게 누르기는 아무 일 없음(네오 "이게 문제였어"·"우클릭 안 올라가니 불편")
+let _lastPT='mouse';addEventListener('pointerdown',e=>{_lastPT=e.pointerType;},true);
+function rightUp(){if(won||autoing)return;clearInterval(window._afi);autoing=true;
+ const stop=()=>{clearInterval(window._afi);autoing=false;showTip();};
+ window._afi=setInterval(()=>{if(won){stop();return;}
+  let did=false;
+  for(let ci=0;ci<tab.length&&!did;ci++){const col=tab[ci];if(col.length){const c=col[col.length-1];if(c.up)for(let fi=0;fi<4;fi++)if(canToFound(c,fi)){sel={from:'tab',col:ci,idx:col.length-1};drop('found',fi);did=true;break;}}}
+  if(!did&&waste.length){const c=waste[waste.length-1];for(let fi=0;fi<4;fi++)if(canToFound(c,fi)){sel={from:'waste'};drop('found',fi);did=true;break;}}
+  for(let ci=0;ci<4&&!did;ci++){const c=cells[ci];if(c)for(let fi=0;fi<4;fi++)if(canToFound(c,fi)){sel={from:'cell',col:ci};drop('found',fi);did=true;break;}}
+  if(!did||won)stop();},90);}
+addEventListener('contextmenu',e=>{e.preventDefault();if(_lastPT==='mouse')rightUp();});
 // 261025 "거의 다 맞추면 바로 완성": 뒷면 카드가 다 열리면 이긴 판 → 단추 한 번에 남은 카드 전부 위 칸으로
 function canFinish(){return !won&&tab.every(col=>col.every((c,i)=>c.up&&(mode!=='fc'||i===0||c.r<col[i-1].r)));}   // 프리셀은 줄마다 큰 수→작은 수면 이긴 판
 function instantFinish(){
