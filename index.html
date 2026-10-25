@@ -86,7 +86,7 @@ body.easy .col:empty::after{content:""}
 #o-bk button{padding:0;aspect-ratio:1/1.396;border-radius:5px;background:center/cover no-repeat;border:2px solid var(--line)}
 #o-bk button.on{border-color:var(--sel);box-shadow:0 0 0 2px var(--sel)}
 #opt .close{width:100%;margin-top:14px;background:var(--sel);color:var(--navy);border-color:var(--sel)}
-#win small{color:var(--sky);font-size:14px;font-weight:600}
+#win small,#lose small{color:var(--sky);font-size:14px;font-weight:600}
 #help{position:fixed;inset:0;display:none;align-items:center;justify-content:center;background:rgba(4,9,26,.6);z-index:90}
 #help .panel{background:var(--panel);border:1.5px solid var(--line);border-radius:16px;padding:18px 20px;max-width:340px;box-shadow:0 12px 44px rgba(0,0,0,.5)}
 #help h2{margin:0 0 12px;font-size:17px;color:var(--sel);font-weight:800}
@@ -94,9 +94,11 @@ body.easy .col:empty::after{content:""}
 #hint-btn{width:100%;margin-top:14px;background:var(--blue);color:#fff;border-color:var(--blue)}
 .flash{animation:flash .5s ease 3}
 @keyframes flash{50%{box-shadow:0 0 0 4px var(--sel),0 0 18px var(--sel)}}
-#win{position:fixed;inset:0;display:none;align-items:center;justify-content:center;
+#win,#lose{position:fixed;inset:0;display:none;align-items:center;justify-content:center;
  background:rgba(9,20,54,.86);z-index:70;flex-direction:column;gap:16px}
-#win b{font-size:26px;color:var(--sel);font-weight:800}
+#win b,#lose b{font-size:26px;color:var(--sel);font-weight:800}
+#lose .btns{display:flex;gap:8px;flex-wrap:wrap;justify-content:center}
+#losepeng{width:84px;aspect-ratio:1/1.396;border-radius:9px;background-position:center;box-shadow:0 4px 14px rgba(0,0,0,.4);filter:grayscale(.6);transform:rotate(-8deg)}
 #winpeng{width:84px;aspect-ratio:1/1.396;border-radius:9px;background-position:center;box-shadow:0 4px 14px rgba(0,0,0,.4);animation:hop .7s ease-in-out infinite}
 /* 261025 고전 연출 잔상 캔버스: 완성 창 아래에 깔려 창이 뜨면 어둡게 비침 */
 #fxtrail{position:fixed;inset:0;pointer-events:none;z-index:69;display:none}
@@ -137,6 +139,7 @@ body.fc .col:empty::after{content:""}
 </div>
 <canvas id="fx"></canvas><div id="fxdom"></div><canvas id="fxtrail"></canvas>
 <div id="win"><div id="winpeng"></div><b>완성!</b><small id="winscore"></small><button onclick="newGame()">다시 하기</button></div>
+<div id="lose"><div id="losepeng"></div><b>게임 오버</b><small>더 둘 수 있는 곳 없음</small><div class="btns"><button onclick="document.getElementById('undo').click()">되돌리기</button><button onclick="newGame()">새 게임</button><button onclick="loseHidden=true;document.getElementById('lose').style.display='none'">판 보기</button></div></div>
 <div id="opt"><div class="panel">
  <h2>옵션</h2>
  <div class="row"><span>사운드</span><div class="seg" id="o-snd"><button data-v="1">켬</button><button data-v="0">끔</button></div></div>
@@ -348,7 +351,7 @@ function newGame(){
  }
  clearInterval(window._afi);autoing=false;tipUntil=0;
  waste=[];found=[[],[],[],[]];hist=[];sel=null;won=false;score=0;moves=0;
- document.getElementById('win').style.display='none';
+ document.getElementById('win').style.display='none';document.getElementById('lose').style.display='none';
  if(fxc){fxc.style.display='none';}
  trailId++;fxt.style.display='none';
  if(fxdom){fxdom.style.display='none';fxdom.innerHTML='';}
@@ -458,7 +461,27 @@ function render(){
   celebrate(()=>{if(won)document.getElementById('win').style.display='flex';});
  }
  // 261025 뒷면 0장 자동 정리 뺌(네오 "오류걸린줄 알고 놀람"). 이제 '바로 완성' 단추로만
+ // 261025 "도저히 아무것도 안 되면 게임오버"
+ const lost=!won&&!autoing&&isStuck(),lo=document.getElementById('lose');
+ if(!lost)loseHidden=false;
+ if(lost&&!loseHidden&&lo.style.display!=='flex'){const bk=BACKS[backKey]||BACKS.adelie,lp=document.getElementById('losepeng');
+  lp.style.backgroundImage=`url(${bk.u})`;lp.style.backgroundSize=bk.sz==='142%'?'142%':'cover';}
+ lo.style.display=lost&&!loseHidden?'flex':'none';
 }
+// 막힘 판정: 위 칸으로 갈 카드 없음 + 뭔가 드러나는 줄 옮기기 없음 + 더미·버린 더미 어느 카드도 쓸 데 없음(프리셀은 빈칸 0)
+let loseHidden=false;
+function isStuck(){
+ if(canFinish())return false;
+ if(mode==='fc'&&cells.some(x=>!x))return false;
+ for(const c of cells)if(c){for(let fi=0;fi<4;fi++)if(canToFound(c,fi))return false;for(let tj=0;tj<tab.length;tj++)if(okTab([c],tj))return false;}
+ for(let ci=0;ci<tab.length;ci++){const col=tab[ci];if(!col.length)continue;const t=col[col.length-1];
+  if(t.up)for(let fi=0;fi<4;fi++)if(canToFound(t,fi))return false;
+  for(let idx=0;idx<col.length;idx++){const c=col[idx];if(!c.up)continue;const mv=col.slice(idx),under=col[idx-1];
+   const useful=idx===0||!under.up||[0,1,2,3].some(fi=>canToFound(under,fi));   // 왔다 갔다만 하는 수는 빼고 셈
+   if(!useful)continue;
+   for(let tj=0;tj<tab.length;tj++)if(tj!==ci&&okTab(mv,tj)&&!(idx===0&&!tab[tj].length))return false;}}
+ for(const c of [...stock,...waste]){for(let fi=0;fi<4;fi++)if(canToFound(c,fi))return false;for(let tj=0;tj<tab.length;tj++)if(canToTab(c,tj))return false;}
+ return true;}
 function onStock(){
  pushHist();
  if(stock.length===0){stock=waste.reverse().map(c=>(c.up=false,c));waste=[];}
