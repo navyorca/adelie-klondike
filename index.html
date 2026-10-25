@@ -595,7 +595,7 @@ function autoFinish(){
   stop();
  },70);
 }
-addEventListener('contextmenu',e=>{e.preventDefault();autoFinish();});
+addEventListener('contextmenu',e=>{e.preventDefault();});   // 261025 우클릭·폰 길게 누르기 자동 정리 뺌(네오 "이게 문제였어")
 // 261025 "거의 다 맞추면 바로 완성": 뒷면 카드가 다 열리면 이긴 판 → 단추 한 번에 남은 카드 전부 위 칸으로
 function canFinish(){return !won&&tab.every(col=>col.every((c,i)=>c.up&&(mode!=='fc'||i===0||c.r<col[i-1].r)));}   // 프리셀은 줄마다 큰 수→작은 수면 이긴 판
 function instantFinish(){
