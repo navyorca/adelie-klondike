@@ -153,7 +153,7 @@ body.fc .col:empty::after{content:""}
 </div></div>
 <div id="help"><div class="panel">
  <h2>도움말</h2>
- <div class="htext">목표: 오른쪽 위 네 칸에 무늬별 A→K 모으기.<br><br>옮기기: 카드 누르고 놓을 곳 누르기, 또는 끌어다 놓기.<br>고른 카드를 다시 누르면 취소.<br>막히면: 왼쪽 위 더미 눌러 새 카드.<br>뒷면 카드가 다 열리면 '바로 완성' 단추로 한 번에 끝내기.<br><br>쌓기 규칙: 테두리 색을 번갈아(보라↔주황), 숫자는 하나씩 작게. 빈 칸에는 King만.<br>보라 테두리=하트·다이아, 주황 테두리=스페이드·클로버. 카드 그림 색은 보지 않아도 됨.<br><br>프리셀: 왼쪽 위 빈칸 4개에 카드 한 장씩 잠시 둘 수 있음. 빈 줄엔 아무 카드나. 여러 장을 한 번에 옮기는 수는 빈칸·빈 줄이 많을수록 늘어남.</div>
+ <div class="htext">목표: 오른쪽 위 네 칸에 무늬별 A→K 모으기.<br><br>옮기기: 카드 누르고 놓을 곳 누르기, 또는 끌어다 놓기.<br>같은 카드를 두 번 누르면 위 칸으로, 못 올라가면 취소.<br>막히면: 왼쪽 위 더미 눌러 새 카드.<br>뒷면 카드가 다 열리면 '바로 완성' 단추로 한 번에 끝내기.<br><br>쌓기 규칙: 테두리 색을 번갈아(보라↔주황), 숫자는 하나씩 작게. 빈 칸에는 King만.<br>보라 테두리=하트·다이아, 주황 테두리=스페이드·클로버. 카드 그림 색은 보지 않아도 됨.<br><br>프리셀: 왼쪽 위 빈칸 4개에 카드 한 장씩 잠시 둘 수 있음. 빈 줄엔 아무 카드나. 여러 장을 한 번에 옮기는 수는 빈칸·빈 줄이 많을수록 늘어남.</div>
  <button id="hint-btn">힌트 보기</button>
  <button class="close" onclick="document.getElementById('help').style.display='none'">닫기</button>
 </div></div>
@@ -514,7 +514,8 @@ function pick(from,col,idx){
  if(_dragSuppress){_dragSuppress=false;return;}   // 드래그 직후 클릭 무시
  if(autoing)return;
  // 261025 누르면 자동 이동 뺌(네오 "이동 숫자가 와르르 쌓임"): 한 번 눌러 고르고, 놓을 곳을 눌러 옮김. 같은 카드 다시 누르면 취소
- if(sel){if(sel.from===from&&sel.col===col&&sel.idx===idx){clearSel();return;}
+ // 261028 같은 카드 두 번 누르면 위 칸으로(네오 "불편해잉"), 못 올라가면 취소
+ if(sel){if(sel.from===from&&sel.col===col&&sel.idx===idx){for(let fi=0;fi<4;fi++)if(canDrop('found',fi)){drop('found',fi);return;}clearSel();return;}
   if(from!=='waste'&&canDrop(from,col)){drop(from,col);return;}}
  sel={from,col,idx};render();
 }
